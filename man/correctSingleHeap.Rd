@@ -11,6 +11,7 @@ correctSingleHeap(
   after = 2,
   method = "lnorm",
   fixed = NULL,
+  weight = NULL,
   seed = NULL,
   na.action = "omit",
   verbose = FALSE,
@@ -44,6 +45,10 @@ Will be rounded to an integer. Default is 2.}
 \item{fixed}{numeric vector of indices indicating observations that should
 not be changed. Useful for preserving known accurate values.}
 
+\item{weight}{optional numeric vector of survey weights, the same length as
+\code{x}. When supplied, the heaping ratio and the selection of records to
+correct use weighted counts. Defaults to \code{NULL} (unweighted).}
+
 \item{seed}{optional integer for random seed to ensure reproducibility.}
 
 \item{na.action}{character string specifying how to handle \code{NA} values:
@@ -72,8 +77,12 @@ set.seed(123)
 age <- rlnorm(10000, meanlog = 2.466869, sdlog = 1.652772)
 age <- round(age[age < 93])
 
-# Artificially introduce a heap at age 23
-age23 <- c(age, rep(23, length = sum(age == 23)))
+# Artificially introduce a heap at age 23 by relabelling (misreporting)
+# half of the nearby ages 21-25 to 23
+k <- which(age \%in\% 21:25)
+k <- sample(k, round(0.5 * length(k)))
+age23 <- age
+age23[k] <- 23
 
 # Correct with reproducible results
 age23_corrected <- correctSingleHeap(age23, heap = 23, before = 5, after = 5,
@@ -88,7 +97,8 @@ print(result$n_changed)
 \code{\link{correctHeaps}} for correcting regular heaping patterns.
 
 Other heaping correction: 
-\code{\link{correctHeaps}()}
+\code{\link{correctHeaps}()},
+\code{\link{correctHeapsMI}()}
 }
 \author{
 Matthias Templ, Bernhard Meindl
